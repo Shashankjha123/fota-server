@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TB40 FOTA Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #fff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        header span {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left {
+            width: 300px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 14px;
+            overflow-y: auto;
+        }
+
+        .right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .device-header {
+            padding: 10px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .device-header h2 {
+            font-size: 13px;
+            color: #777;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .device-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+            align-content: start;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .card h3 {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .device-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 14px;
+            transition: box-shadow 0.2s;
+        }
+
+        .device-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .device-card .tid {
+            font-size: 15px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 4px;
+        }
+
+        .device-card .lastseen {
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .badge.online {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge.offline {
+            background: #fce4ec;
+            color: #c62828;
+        }
+
+        input[type="file"],
+        select,
+        input[type="text"] {
+            width: 100%;
+            padding: 7px 10px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #333;
+            font-size: 13px;
+            margin: 5px 0;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: #aaa;
+        }
+
+        .btn {
+            padding: 7px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn.primary {
+            background: #222;
+            color: #fff;
+        }
+
+        .btn.success {
+            background: #2e7d32;
+            color: #fff;
+        }
+
+        .btn.danger {
+            background: #c62828;
+            color: #fff;
+        }
+
+        .btn.light {
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .btn.full {
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .status-msg {
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .status-msg.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-msg.error {
+            background: #fce4ec;
+            color: #c62828;
+        }
+
+        .status-msg.loading {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+
+        .log-panel {
+            background: #1e1e1e;
+            border-top: 1px solid #e0e0e0;
+            height: 130px;
+            padding: 10px 16px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #69ff47;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            color: #bbb;
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>TB40 FOTA Dashboard — Limitless Technology</h1>
+        <span id="clock"></span>
+    </header>
+
+    <div class="main">
+
+        <div class="left">
+
+            <div class="card">
+                <h3>Upload APK</h3>
+                <input type="file" id="apkFile" accept=".apk">
+                <button class="btn primary full" onclick="uploadAPK()">Upload APK</button>
+                <div id="uploadStatus"></div>
+            </div>
+
+            <div class="card">
+                <h3>Local Install (ADB)</h3>
+                <select id="apkSelect">
+                    <option value="">-- Select APK --</option>
+                </select>
+                <button class="btn light full" onclick="loadAPKList()">Refresh List</button>
+                <button class="btn success full" onclick="installAPK()" id="installBtn">Install on TB40</button>
+                <div id="installStatus"></div>
+            </div>
+
+            <div class="card">
+                <h3>Set Latest Version</h3>
+                <select id="latestApkSelect">
+                    <option value="">-- Select APK --</option>
+                </select>
+                <input type="text" id="versionInput" placeholder="Version e.g. 2.0">
+                <button class="btn primary full" onclick="setLatest()">Set as Latest</button>
+                <div id="latestStatus"></div>
+            </div>
+
+        </div>
+
+        <div class="right">
+
+            <div class="device-header">
+                <h2>Connected Devices</h2>
+                <button class="btn light" onclick="loadDevices()">Refresh</button>
+            </div>
+
+            <div class="device-grid" id="deviceGrid">
+                <div class="empty-state">No devices connected yet.<br>Devices appear here when TB40 checks in.</div>
+            </div>
+
+            <div class="log-panel" id="log">— FOTA Dashboard Ready —</div>
+
+        </div>
+
+    </div>
+
+    <script>
+        window.onload = () => {
+            loadAPKList();
+            loadDevices();
+            setInterval(loadDevices, 10000);
+            setInterval(() => {
+                document.getElementById('clock').textContent = new Date().toLocaleString();
+            }, 1000);
+        };
+
+        function log(msg) {
+            const el = document.getElementById('log');
+            el.textContent += '\n' + new Date().toLocaleTimeString() + ' > ' + msg;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function setStatus(id, msg, type) {
+            const el = document.getElementById(id);
+            el.className = 'status-msg ' + type;
+            el.textContent = msg;
+        }
+
+        async function uploadAPK() {
+            const file = document.getElementById('apkFile').files[0];
+            if (!file) return alert('Please select an APK file!');
+            const formData = new FormData();
+            formData.append('apk', file);
+            setStatus('uploadStatus', 'Uploading...', 'loading');
+            log('Uploading ' + file.name);
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                setStatus('uploadStatus', 'Uploaded: ' + data.filename, 'success');
+                log('Upload done: ' + data.filename);
+                loadAPKList();
+            } else {
+                setStatus('uploadStatus', 'Upload failed!', 'error');
+                log('Upload failed!');
+            }
+        }
+
+        async function loadAPKList() {
+            const res = await fetch('/apklist');
+            const data = await res.json();
+            cachedFiles = data.files;
+            ['apkSelect', 'latestApkSelect'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">-- Select APK --</option>';
+                data.files.forEach(f => {
+                    select.innerHTML += `<option value="${f}">${f}</option>`;
+                });
+            });
+            log('APK list refreshed: ' + data.files.length + ' file(s)');
+        }
+
+        async function installAPK() {
+            const filename = document.getElementById('apkSelect').value;
+            if (!filename) return alert('Please select an APK!');
+            document.getElementById('installBtn').disabled = true;
+            setStatus('installStatus', 'Installing...', 'loading');
+            log('Starting install: ' + filename);
+            const res = await fetch('/install', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename })
+            });
+            const data = await res.json();
+            document.getElementById('installBtn').disabled = false;
+            if (data.success) {
+                setStatus('installStatus', 'Installed!', 'success');
+                log('Install complete!');
+            } else {
+                setStatus('installStatus', 'Failed: ' + data.message, 'error');
+                log('Install failed: ' + data.message);
+            }
+        }
+
+        async function setLatest() {
+            const filename = document.getElementById('latestApkSelect').value;
+            const version = document.getElementById('versionInput').value;
+            if (!filename || !version) return alert('Select APK and enter version!');
+            const apk_url = window.location.origin + '/uploads/' + filename;
+            const res = await fetch('/setlatest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ version, apk_url, package_name: 'com.osel.player' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setStatus('latestStatus', 'Latest set to v' + version, 'success');
+                log('Latest APK set: v' + version + ' → ' + filename);
+            }
+        }
+
+        let cachedFiles = [];
+
+        function getAPKOptions() {
+            return cachedFiles.map(f => `<option value="${f}">${f}</option>`).join('');
+        }
+
+        async function loadDevices() {
+            const res = await fetch('/devices');
+            const data = await res.json();
+            const grid = document.getElementById('deviceGrid');
+            if (data.devices.length === 0) {
+                grid.innerHTML = '<div class="empty-state">No devices connected yet.<br>Devices appear here when TB40 checks in.</div>';
+                return;
+            }
+            grid.innerHTML = data.devices.map(d => `
+            <div class="device-card">
+                <div class="tid">${d.tid}</div>
+                <span class="badge online">online</span>
+                <div class="lastseen">Last seen: ${new Date(d.lastSeen).toLocaleString()}</div>
+                <select id="apk_${d.tid}" style="width:100%;padding:6px;background:#fafafa;border:1px solid #ddd;border-radius:5px;color:#333;font-size:12px;margin-bottom:8px;">
+                    <option value="">-- Select APK --</option>
+                    ${getAPKOptions()}
+                </select>
+                <button class="btn success full" onclick="pushUpdate('${d.tid}')">Push Update</button>
+            </div>
+        `).join('');
+        }
+
+        async function pushUpdate(tid) {
+            const select = document.getElementById('apk_' + tid);
+            const filename = select ? select.value : '';
+            const version = document.getElementById('versionInput').value || '2.0';
+            if (!filename) return alert('Please select APK for this device!');
+            const apk_url = window.location.origin + '/uploads/' + filename;
+            const res = await fetch('/targetupdate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tid, version, apk_url, package_name: 'com.osel.player' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                log('Update queued for TID: ' + tid + ' → ' + filename);
+                alert('Update queued for ' + tid + '!\nDevice will install on next check-in.');
+            } else {
+                log('Failed: ' + data.message);
+                alert('Failed: ' + data.message);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
