@@ -121,6 +121,28 @@ app.post('/setlatest', (req, res) => {
     latestAPK = { version, apk_url, package_name };
     res.json({ success: true, message: 'Latest APK info updated' });
 });
+app.get('/getplayers', async (req, res) => {
+    const crypto = require('crypto');
+    const AK = '7a12c6e0446646c6b69264715ba020ef';
+    const AS = '18830e0054934529a0883535662ede31';
+    const Nonce = 'abc12345';
+    const CurTime = String(Math.floor(Date.now() / 1000));
+    const CheckSum = crypto.createHash('sha256')
+        .update(AS + Nonce + CurTime)
+        .digest('hex');
+
+    const response = await fetch('https://open-us.vnnox.com/v2/player/list?count=50', {
+        headers: {
+            'AppKey': AK,
+            'Nonce': Nonce,
+            'CurTime': CurTime,
+            'CheckSum': CheckSum,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    });
+    const data = await response.json();
+    res.json(data);
+});
 
 const PORT = process.env.PORT || 3000;
 
