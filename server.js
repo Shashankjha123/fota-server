@@ -132,7 +132,7 @@ app.get('/getplayers', async (req, res) => {
         .digest('hex');
 
     const response = await fetch(
-        'https://open-us.vnnox.com/v2/player/list?count=20&start=0',
+        'https://openapi-in.vnnox.com/v2/player/list?count=20&start=0',
         {
             method: 'GET',
             headers: {
